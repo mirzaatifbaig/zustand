@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:where(.dark, .dark *));
+/* styles.css */
+
+/* Base styles */
+@tailwind utilities;
+
+/* Dark mode styles */
+@layer utilities {
+    .dark .bg-primary {
+        --tw-bg-opacity: 1;
+        background-color: rgba(10, 114, 128, var(--tw-bg-opacity));
+    }
+    .dark .text-primary {
+        --tw-text-opacity: 1;
+        color: rgba(10, 114, 128, var(--tw-text-opacity));
+    }
+}
