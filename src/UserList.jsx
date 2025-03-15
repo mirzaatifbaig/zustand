@@ -1,42 +1,54 @@
-import { useEffect } from 'react';
-import useUserStore from '@/store';
+import useUserStore from "@/store.jsx";
+import { useEffect, useRef, useCallback } from "react";
 
 function UserList() {
-    const { users, fetchUsers, hasMore, loading } = useUserStore();
+    const { users, fetchUsers, loading, hasMore } = useUserStore();
 
-    const handleScroll = () => {
-        const scrollTop = window.scrollY || document.documentElement.scrollTop;
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
+    // ✅ Infinite Scroll Observer
+    const observer = useRef();
 
-        if (scrollTop + windowHeight >= documentHeight - 10) {
-            fetchUsers(); // ✅ Fetch more when user reaches bottom
-        }
-    };
+    const lastUserRef = useCallback(
+        (node) => {
+            if (loading) return; // ✅ Prevent fetching during loading
+
+            if (observer.current) observer.current.disconnect(); // ✅ Disconnect old observer
+
+            observer.current = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting && hasMore) {
+                    fetchUsers(); // ✅ Fetch next page when last element is visible
+                }
+            });
+
+            if (node) observer.current.observe(node); // ✅ Observe the last element
+        },
+        [loading, hasMore] // ✅ Dependency Array
+    );
 
     useEffect(() => {
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll); // ✅ Cleanup
+        fetchUsers(); // ✅ Fetch first page on mount
     }, []);
 
     return (
-        <div className="p-4">
-            {users.map((user) => (
-                <div key={user.id} className="mb-4 p-4 border-b">
-                    <h2 className="text-lg font-bold">{user.name}</h2>
+        <div className=" dark:text-white border-white dark:border-white p-4">
+            {users.map((user, index) => (
+                <div
+                    key={user.id}
+                    ref={index === users.length - 1 ? lastUserRef : null} // ✅ Observe Last Element
+                    className="p-4 dark:bg-black dark:border-[0.1px] dark:text-gray-500  dark:border-gray-600 bg-white shadow rounded mb-4"
+                >
+                    <h2 className="text-xl dark:text-white dark:border-white font-semibold">{user.name}</h2>
                     <p>{user.email}</p>
                 </div>
             ))}
-
             {loading && (
-                <div className="animate-pulse">
-                    <div className="h-8 bg-gray-200 rounded mb-4"></div>
-                    <div className="h-6 bg-gray-200 rounded mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded"></div>
+                <div className="animate-pulse space-y-4">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className="h-16 bg-gray-200 dark:bg-gray-800 rounded"></div>
+                    ))}
                 </div>
             )}
+            {!hasMore && <p className="text-center mt-4 text-gray-500">✅ No More Users</p>}
 
-            {!hasMore && <p className="text-center text-gray-500">No more users.</p>}
         </div>
     );
 }

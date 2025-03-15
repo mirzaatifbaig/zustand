@@ -1,4 +1,4 @@
-import useUserStore from "@/store.jsx";
+import useUserStore from "./store.jsx";
 
 function UserInfo() {
     const {username} = useUserStore();

@@ -1,17 +1,18 @@
-import useUserStore from "@/store";
 import UserList from "@/UserList.jsx";
+import ThemeToggle from "@/ThemeToggle.jsx";
+import useUserStore from "@/store.jsx";
 
 function App() {
-    const {isDarkMode, toggleDarkMode} = useUserStore();
-    return (<div
-            className={`${isDarkMode ? 'dark   ' : ''} flex flex-col items-center justify-center min-h-screen dark:bg-black dark:text-white`}>
-            <UserList/>
+    const {isDarkMode, toggleDarkMode} = useUserStore()
+    return (
+        <div  className={(`${isDarkMode ? 'dark': ''} flex items-center justify-center min-h-screen dark:bg-black bg-gray-100`)}>
 
-            <button onClick={toggleDarkMode} className={'px-3 py-2 bg-yellow-500 text-black rounded mb-4'}>
-                {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
-            </button>
-        </div>);
+
+            <ThemeToggle/>
+            <UserList />
+
+        </div>
+    );
 }
 
 export default App;
-    

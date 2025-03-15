@@ -1,62 +1,72 @@
-import {create,} from "zustand";
-import {toast} from 'sonner'
-const useUserStore = create((setState) => ({
+import {create} from "zustand";
+import {toast} from 'sonner' // ✅ Shadcn Toast Import
 
-        count: 0,
-        username: 'Guest',
-        users: [],
-        page: 0,
-        hasMore: false,
-        loading: false,
+const useUserStore = create((setState, getState) => ({
 
+    // ✅ Initial State
+    count: 0,
+    username: 'Guest',
+    users: [],
+    page: 1, // ✅ Start from page 1
+    hasMore: true, // ✅ Fixed: Infinite Scroll Works
+    loading: false,
+    isAuthenticated: false,
 
-        isAuthenticated: false,
-        login: (username) => {
-            setState({isAuthenticated: true, username: username})
-            toast.success(`✅ Logged in as ${username}`)
-        },
-        logout: () => {
-            setState({isAuthenticated: false, username: 'Guest'})
-            toast.error('❌ Logged Out')
-        },
-
-        increase: () => setState((state) => ({count: state.count + 1})),
-        decrease: () => setState((state) => ({count: state.count - 1})),
-        reset: () => setState({count: 0}),
-
-        setUsername: (newUsername) => setState(() => ({username: newUsername || 'Guest'})),
-    fetchUsers: async () => {
-        if (useUserStore.getState().loading) return; // ✅ Prevent double fetch
-
-        setState({ loading: true }); // ✅ Zustand's setState function
-
-        const response = await fetch(`https://jsonplaceholder.typicode.com/users?_page=${useUserStore.getState().page}&_limit=20`);
-        const data = await response.json();
-
-        const currentUsers = useUserStore.getState().users || []; // ✅ Fix for undefined
-
-        // ✅ Remove duplicates by filtering unique IDs
-        const mergedUsers = [...currentUsers, ...data].filter(
-            (user, index, self) =>
-                index === self.findIndex((u) => u.id === user.id) // ✅ Filter by unique user.id
-        );
-
-        if (data.length === 0) {
-            setState({ hasMore: false }); // ✅ No more data
-        } else {
-            setState({
-                users: mergedUsers, // ✅ No duplicates now
-                page: useUserStore.getState().page + 1,
-                loading: false,
-            });
-        }
+    // ✅ Authentication
+    login: (username) => {
+        setState({isAuthenticated: true, username});
+        toast.success(`✅ Logged in as ${username}`);
+    },
+    logout: () => {
+        setState({isAuthenticated: false, username: 'Guest'});
+        toast.error('❌ Logged Out');
     },
 
-        isModalOpen: false,
-        openModal: () => setState({isModalOpen: true}),
-        closeModal: () => setState({isModalOpen: false}),
-        isDarkMode: false,
-        toggleDarkMode: () => setState((state) => ({isDarkMode: !state.isDarkMode})),
-    })
-)
+    // ✅ Counter
+    increase: () => setState((state) => ({count: state.count + 1})),
+    decrease: () => setState((state) => ({count: state.count - 1})),
+    reset: () => setState({count: 0}),
+
+    // ✅ Set Username
+    setUsername: (newUsername) => {
+        setState(() => ({username: newUsername || 'Guest'}));
+    },
+
+    // ✅ Fetch Users (with Infinite Scroll and No Duplicate Fetch)
+    fetchUsers: async () => {
+        if (useUserStore.getState().loading) return;
+
+        setState({ loading: true });
+
+        const page = useUserStore.getState().page;
+        const response = await fetch(`https://randomuser.me/api/?results=20&page=${page}`);
+        const data = await response.json();
+
+        const currentUsers = useUserStore.getState().users || [];
+
+        const newUsers = data.results.map((user) => ({
+            id: user.login.uuid,
+            name: `${user.name.first} ${user.name.last}`,
+            email: user.email,
+            avatar: user.picture.thumbnail,
+        }));
+
+        setState({
+            users: [...currentUsers, ...newUsers],
+            page: page + 1,
+            hasMore: data.results.length > 0,
+            loading: false,
+        });
+    },
+
+    // ✅ Modal Handling
+    isModalOpen: false,
+    openModal: () => setState({isModalOpen: true}),
+    closeModal: () => setState({isModalOpen: false}),
+
+    // ✅ Dark Mode Handling
+    isDarkMode: false,
+    toggleDarkMode: () => setState((state) => ({isDarkMode: !state.isDarkMode})),
+}));
+
 export default useUserStore;

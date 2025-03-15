@@ -1,15 +1,15 @@
 import useUserStore from "@/store.jsx";
 
 const ThemeToggle = () => {
-    const {theme, toggleTheme} = useUserStore()
+    const {isDarkMode, toggleDarkMode} = useUserStore()
     return (
         <button
-            onClick={toggleTheme}
+            onClick={toggleDarkMode}
             className={`px-4 py-2 rounded m-8 ${
-                theme === 'dark' ? 'bg-black text-white' : 'bg-gray-200 text-black'
+                isDarkMode ? 'bg-black text-white' : 'bg-gray-200 text-black'
             }`}
         >
-            {theme === 'dark' ? '🌙 Dark Mode' : '☀️ Light Mode'}
+            {isDarkMode ? '🌙 Dark Mode' : '☀️ Light Mode'}
         </button>
     )
 }
