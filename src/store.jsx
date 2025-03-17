@@ -1,73 +1,84 @@
-import {create} from "zustand";
-import {persist} from 'zustand/middleware'
+import {create} from 'zustand';
 
-const api = 'https://67d862da00348dd3e2a74f5e.mockapi.io/users/user'
-const logMiddleware = (config) => (set, get, api) =>
-    config(
-        (args) => {
-            console.log("🔹 State Update:", args);
-            set(args);
-        },
-        get,
-        api
-    );
-
-const useUserStore = create(
-    logMiddleware(
-        persist(
-            (set, get) => ({
-                users: [], // ✅ Ensure this is always an array
-                loading: false,
-
-                fetchUsers: async () => {
-                    set({loading: true});
-
-                    const response = await fetch(api);
-                    const data = await response.json();
-
-                    set({users: Array.isArray(data) ? data : [], loading: false}); // ✅ Ensure `data` is an array
+const useUserStore = create((set, get) => ({
+    users: [],
+    fetchUsers: async () => {
+        try {
+            const response = await fetch('https://67d862da00348dd3e2a74f5e.mockapi.io/users/user');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            set({ users: data });
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    },
+    addUser: async (user) => {
+        try {
+            const response = await fetch('https://67d862da00348dd3e2a74f5e.mockapi.io/users/user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
                 },
-
-                addUser: async (newUser) => {
-                    const response = await fetch(api, {
-                        method: "POST",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify(newUser),
-                    });
-
-                    const createdUser = await response.json();
-                    set({users: [...get().users, createdUser]}); // ✅ Fix spreading issue
+                body: JSON.stringify(user),
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            get().fetchUsers();
+        } catch (error) {
+            console.error('Error adding user:', error);
+        }
+    },
+    updateUser: async (userId, updatedUser) => {
+        try {
+            const response = await fetch(`https://67d862da00348dd3e2a74f5e.mockapi.io/users/user/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
                 },
-
-                updateUser: async (id, updatedData) => {
-                    const response = await fetch(`${api}/${id}`, { // ✅ Corrected URL
-                        method: "PUT",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify(updatedData),
-                    });
-
-                    if (response.ok) {
-                        const updatedUser = await response.json();
-                        set({users: get().users.map(user => user.id === id ? updatedUser : user)});
-                    } else {
-                        console.error("❌ Error updating user", await response.text());
-                    }
-                },
-
-                deleteUser: async (id) => {
-                    const response = await fetch(`${api}/${id}`, { // ✅ Corrected URL
-                        method: "DELETE",
-                        headers: {"Content-Type": "application/json"},
-                    });
-
-                    if (response.ok) {
-                        set({users: get().users.filter(user => user.id !== id)});
-                    } else {
-                        console.error("❌ Error deleting user", await response.text());
-                    }
-                }
-            })
-            , {name: "store"}))
-);
+                body: JSON.stringify(updatedUser),
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            get().fetchUsers();
+        } catch (error) {
+            console.error('Error updating user:', error);
+        }
+    },
+    deleteUser: async (userId) => {
+        try {
+            const response = await fetch(`https://67d862da00348dd3e2a74f5e.mockapi.io/users/user/${userId}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            get().fetchUsers();
+        } catch (error) {
+            console.error('Error deleting user:', error);
+        }
+    },
+    startPolling: (interval) => {
+        set({ pollingInterval: interval });
+        get().pollUsers();
+    },
+    stopPolling: () => {
+        if (get().pollingInterval) {
+            clearInterval(get().pollingInterval);
+            set({ pollingInterval: null });
+        }
+    },
+    pollUsers: () => {
+        get().fetchUsers();
+        if (get().pollingInterval) {
+            clearInterval(get().pollingInterval);
+        }
+        const intervalId = setInterval(get().fetchUsers, get().pollingInterval);
+        set({ pollingInterval: intervalId });
+    },
+}));
 
 export default useUserStore;
