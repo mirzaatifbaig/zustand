@@ -1,16 +1,13 @@
 import UserList from "@/UserList.jsx";
 import ThemeToggle from "@/ThemeToggle.jsx";
 import useUserStore from "@/store.jsx";
+import {useEffect} from "react";
 
 function App() {
-    const {isDarkMode, toggleDarkMode} = useUserStore()
+
     return (
-        <div  className={(`${isDarkMode ? 'dark': ''} flex items-center justify-center min-h-screen dark:bg-black bg-gray-100`)}>
-
-
-            <ThemeToggle/>
+        <div className={'flex items-center min-h-screen'}>
             <UserList />
-
         </div>
     );
 }
