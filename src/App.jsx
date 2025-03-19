@@ -1,13 +1,10 @@
-import UserList from "@/UserList.jsx";
+import Counter, {Controls} from "@/CounterStore.jsx";
 
-function App() {
+export default function App(){
     return (
         <div>
-            <div className={'flex items-center min-h-screen'}>
-                <UserList/>
-            </div>
+            <Counter/>
+            <Controls />
         </div>
-    );
+    )
 }
-
-export default App;
