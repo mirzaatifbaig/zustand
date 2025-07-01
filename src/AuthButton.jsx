@@ -1,4 +1,4 @@
-import useUserStore from "@/store.jsx";
+    import useUserStore from "@/store.jsx";
 
 const AuthButton = () => {
     const { isAuthenticated,username, login, logout } = useUserStore();

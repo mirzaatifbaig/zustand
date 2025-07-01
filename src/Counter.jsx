@@ -2,8 +2,7 @@ import useCounterStore from "@/CounterStore.jsx";
 
 const Counter = () => {
   const { decrement, increment, reset } = useCounterStore()
-  const count = useCounterStore((state) => state.count)
-  const history = useCounterStore((state) => state.history)
+  const {count, history}= useCounterStore()
   return (
     <div className="p-4 text-center ">
       <h1 className="text-3xl text-black font-bold">{count}</h1>
@@ -23,7 +22,7 @@ const Counter = () => {
       <div className="mt-6">
         <h2 className="text-xl font-semibold">History:</h2>
         <ul className="list-disc">
-          {history.map((value, index) => (
+          {history?.map((value, index) => (
             <li key={index} className="text-gray-700">
               Previous Count: {value}
             </li>
